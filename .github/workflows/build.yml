@@ -1,0 +1,36 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install buildozer cython
+          
+      - name: Build with Buildozer
+        run: |
+          buildozer init
+          sed -i 's/title = My Application/title = Star Task/' buildozer.spec
+          sed -i 's/package.name = myapp/package.name = startask/' buildozer.spec
+          sed -i 's/package.domain = org.test/package.domain = ir.khwarizmi/' buildozer.spec
+          sed -i 's/source.include_exts = py,png,jpg,kv,atlas/source.include_exts = py,png,jpg,kv,atlas,json,txt/' buildozer.spec
+          buildozer -v android debug
+          
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: star-task-apk
+          path: bin/*.apk
